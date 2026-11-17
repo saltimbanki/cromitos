@@ -1,0 +1,51 @@
+#!/bin/sh
+# ---------------------------------------------------------------------------
+# Impide subir datos persoais por accidente.
+# Actívase unha vez con:  git config core.hooksPath .githooks
+# ---------------------------------------------------------------------------
+
+blocked() {
+  echo ""
+  echo "  COMMIT BLOQUEADO"
+  echo "  $1"
+  echo ""
+  echo "  Isto é a rede de seguridade: o Excel dos nenos e o estado real"
+  echo "  da colección NON poden estar nun repositorio público."
+  echo ""
+  exit 1
+}
+
+staged=$(git diff --cached --name-only --diff-filter=ACMR)
+[ -z "$staged" ] && exit 0
+
+# 1. Follas de cálculo (o Excel mestre)
+if echo "$staged" | grep -Ei '\.(xlsx|xls|xlsm|ods|csv)$' >/dev/null 2>&1; then
+  blocked "hai unha folla de cálculo no commit."
+fi
+
+# 2. Copias de seguridade e catálogo con datos de menores
+if echo "$staged" | grep -Ei '(^|/)private/|(^|/)(cromos|album)-[^/]*\.json$|^data/(catalog\.json|catalog\.js|seed\.js)$' >/dev/null 2>&1; then
+  blocked "hai un ficheiro con datos persoais ou catálogo de menores."
+fi
+
+# 3. data/seed.js con colección real
+if echo "$staged" | grep -qx 'data/seed.js'; then
+  if git show :data/seed.js 2>/dev/null | grep -q '"counts":{'; then
+    blocked "data/seed.js contén a colección real. Xera o build público: python tools/generate_catalog.py"
+  fi
+fi
+
+# 4. Calquera ficheiro con pinta de estado de colección
+if echo "$staged" | grep -Ei '\.json$' >/dev/null 2>&1; then
+  for f in $staged; do
+    case "$f" in
+      *.json)
+        if git show ":$f" 2>/dev/null | grep -q '"collections"[[:space:]]*:[[:space:]]*{[^}]*"p[0-9]'; then
+          blocked "$f parece unha copia de colección con datos."
+        fi
+        ;;
+    esac
+  done
+fi
+
+exit 0

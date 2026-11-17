@@ -1,0 +1,14 @@
+# Os hooks teñen que ser LF: se Git lles pon CRLF, o "#!/bin/sh" rompe
+# e o hook de seguridade non se executa (falla silenciosa).
+.githooks/* text eol=lf
+
+# Texto normal
+* text=auto
+
+# Binarios
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.ico binary
+*.xlsx binary

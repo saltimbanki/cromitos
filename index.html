@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="gl" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Control do álbum de cromos EDB / U.D. Barbadás. Marca o que tes, o que che falta e os repetidos.">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta name="theme-color" content="#0f7b5f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Cromos">
+  <meta name="format-detection" content="telephone=no">
+
+  <title>Cromos · U.D. Barbadás</title>
+
+  <script>
+    /* Antes de pintar: tema, cor do álbum activo e porta de acceso.
+       Así non hai flash nin de tema nin de contido. */
+    (function () {
+      /* Frase de acceso. Cámbiase con: python tools/gate.py "nova frase" */
+      var GATE = '2388930186';
+      window.__GATE_HASH__ = GATE;
+
+      var theme = 'light';
+      try {
+        var raw = JSON.parse(localStorage.getItem('cromos.v1') || 'null');
+        if (raw && (raw.theme === 'light' || raw.theme === 'dark')) {
+          theme = raw.theme;
+        } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+          theme = 'dark';
+        }
+        var tone = localStorage.getItem('cromos.tone');
+        if (tone && tone.indexOf('|') > 0) {
+          var parts = tone.split('|');
+          document.documentElement.style.setProperty('--tone', parts[0]);
+          document.documentElement.style.setProperty('--tone-ink', parts[1]);
+          var meta = document.querySelector('meta[name="theme-color"]');
+          if (meta) meta.setAttribute('content', parts[0]);
+        }
+        var unlocked = GATE !== '' && localStorage.getItem('cromos.gate') === GATE;
+        if (GATE !== '' && !unlocked) {
+          document.documentElement.setAttribute('data-gate', 'locked');
+        }
+      } catch (e) { /* noop */ }
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+  </script>
+
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="assets/icons/icon-192.png" sizes="192x192">
+  <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
+  <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+
+  <div class="gate" id="gate">
+    <form class="gate-card" id="gate-form" novalidate>
+      <h1>Cromos</h1>
+      <p class="sub">Álbum EDB / U.D. Barbadás</p>
+      <label class="label" for="gate-pass">Frase de acceso</label>
+      <input class="field" id="gate-pass" type="password" autocomplete="current-password"
+             autocapitalize="off" autocorrect="off" spellcheck="false" required>
+      <p class="gate-err" id="gate-err" hidden>Non é esa frase.</p>
+      <button class="btn" type="submit">Entrar</button>
+    </form>
+  </div>
+
+  <div id="app">
+    <header class="topbar" id="topbar" aria-label="Barra superior"></header>
+    <main id="view" tabindex="-1"></main>
+    <nav class="tabs" id="tabs" role="tablist" aria-label="Seccións"></nav>
+  </div>
+
+  <div id="sheet-root" aria-live="polite"></div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    /* Porta de acceso. Non é seguridade real: é un filtro para que non entre
+       calquera que teña o link. Os datos non están no servidor. */
+    (function () {
+      var HASH = window.__GATE_HASH__ || '';
+      var form = document.getElementById('gate-form');
+      var input = document.getElementById('gate-pass');
+      var err = document.getElementById('gate-err');
+      if (!form || HASH === '') return;
+
+      function h(s) {
+        var x = 5381;
+        for (var i = 0; i < s.length; i++) x = ((x * 33) ^ s.charCodeAt(i)) >>> 0;
+        return String(x);
+      }
+
+      if (document.documentElement.getAttribute('data-gate') === 'locked') {
+        setTimeout(function () { input.focus(); }, 80);
+      }
+
+      form.addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        if (h(input.value.trim()) === HASH) {
+          try { localStorage.setItem('cromos.gate', HASH); } catch (e) { /* noop */ }
+          document.documentElement.removeAttribute('data-gate');
+          err.hidden = true;
+          input.value = '';
+          var view = document.getElementById('view');
+          if (view) view.focus();
+        } else {
+          err.hidden = false;
+          input.select();
+        }
+      });
+    })();
+  </script>
+
+  <script src="assets/qr.js"></script>
+  <script src="assets/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+# ---------------------------------------------------------------------------
+# DATOS PERSOAIS · NUNCA SUBIR A GITHUB
+# O Excel ten a colección real dos nenos. Do Excel sácase data/seed.js, que
+# tamén é persoal. A app publicada leva data/seed.js = null.
+# ---------------------------------------------------------------------------
+
+*.xlsx
+*.xls
+*.xlsm
+*.ods
+*.csv
+
+private/
+cromos-*.json
+album-*.json
+*.backup.json
+data/catalog.json
+data/catalog.js
+data/seed.js
+
+# ---------------------------------------------------------------------------
+# Sistema e ferramentas
+# ---------------------------------------------------------------------------
+
+.DS_Store
+Thumbs.db
+desktop.ini
+
+__pycache__/
+*.pyc
+.venv/

@@ -1,0 +1,33 @@
+{
+  "name": "Cromos · U.D. Barbadás",
+  "short_name": "Cromos",
+  "description": "Control do álbum de cromos EDB / U.D. Barbadás: o que tes, o que che falta e os repetidos.",
+  "lang": "gl",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f4f2ec",
+  "theme_color": "#0d6b3d",
+  "categories": ["sports", "utilities"],
+  "icons": [
+    {
+      "src": "assets/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
