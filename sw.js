@@ -2,7 +2,7 @@
    Estratexia: stale-while-revalidate para o shell, network-first para o documento.
    Ao publicar cambios, sube VERSION para invalidar a caché. */
 
-var VERSION = 'cromos-v7';
+var VERSION = 'cromos-v8';
 var ASSETS = [
   './',
   './index.html',

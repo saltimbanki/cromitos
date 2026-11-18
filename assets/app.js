@@ -781,6 +781,39 @@
       '</div>';
   }
 
+  function allPages() {
+    var list = [];
+    CATEGORIES.forEach(function (c) {
+      c.pages.forEach(function (p) {
+        list.push({ catId: c.id, pageIdx: p.index });
+      });
+    });
+    return list;
+  }
+
+  function stepPage(delta) {
+    var list = allPages();
+    if (!list.length) return;
+    var cat = CAT_BY_ID.get(ui.catId);
+    var curPage = ui.pageIdx != null ? ui.pageIdx : (cat && cat.pages[0] ? cat.pages[0].index : null);
+    var pos = -1;
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].catId === ui.catId && list[i].pageIdx === curPage) { pos = i; break; }
+    }
+    if (pos < 0) return;
+    var target = list[pos + delta];
+    if (!target) return;
+    var catChanged = target.catId !== ui.catId;
+    ui.catId = target.catId;
+    ui.pageIdx = target.pageIdx;
+    ui.slideDir = delta > 0 ? 'next' : 'prev';
+    render();
+    viewEl.scrollTop = 0;
+    if (catChanged) {
+      try { history.replaceState({ catId: ui.catId }, ''); } catch (e) { /* noop */ }
+    }
+  }
+
   function viewCategory() {
     var cat = CAT_BY_ID.get(ui.catId);
     if (!cat) return goAlbum();
@@ -791,6 +824,14 @@
     if (current == null || !pages.some(function (p) { return p.index === current; })) {
       current = pages[0].index;
     }
+
+    var seq = allPages();
+    var seqPos = -1;
+    for (var i = 0; i < seq.length; i++) {
+      if (seq[i].catId === ui.catId && seq[i].pageIdx === current) { seqPos = i; break; }
+    }
+    var hasPrev = seqPos > 0;
+    var hasNext = seqPos >= 0 && seqPos < seq.length - 1;
 
     var page = pages.filter(function (p) { return p.index === current; })[0];
     var ids = page ? page.stickers : [];
@@ -805,15 +846,23 @@
     }).join('');
 
     var owned = ids.filter(function (id) { return (col[id] || 0) >= 1; }).length;
+    var slideCls = ui.slideDir ? ' slide-' + ui.slideDir : '';
+    ui.slideDir = null;
 
     viewEl.innerHTML =
+      '<div class="cat-sticky">' +
       '<div class="subhead">' +
       '<button class="back-btn" type="button" data-act="back" aria-label="Volver">' + ICON.back + '</button>' +
       '<h2>' + esc(cat.name) + '</h2>' +
       '<span class="count">' + owned + '/' + ids.length + '</span>' +
+      '<div class="nav-pair">' +
+      '<button class="nav-btn" type="button" data-act="page-prev" aria-label="Páxina anterior"' + (hasPrev ? '' : ' disabled') + '>' + ICON.back + '</button>' +
+      '<button class="nav-btn" type="button" data-act="page-next" aria-label="Páxina seguinte"' + (hasNext ? '' : ' disabled') + '>' + ICON.chevronRight + '</button>' +
+      '</div>' +
       '</div>' +
       '<div class="chips">' + chips + '</div>' +
-      '<div class="rows">' + ids.map(function (id) { return rowHTML(BY_ID.get(id), { meta: 'role' }); }).join('') + '</div>' +
+      '</div>' +
+      '<div class="rows' + slideCls + '">' + ids.map(function (id) { return rowHTML(BY_ID.get(id), { meta: 'role' }); }).join('') + '</div>' +
       '<div style="height:20px"></div>';
   }
 
@@ -1850,6 +1899,14 @@
         break;
       }
 
+      case 'page-prev':
+        stepPage(-1);
+        break;
+
+      case 'page-next':
+        stepPage(1);
+        break;
+
       case 'save-name': {
         var input = document.getElementById('name-input');
         var name = input ? input.value.trim() : '';
@@ -2163,6 +2220,34 @@
     render();
     checkHashTrade();
     window.addEventListener('hashchange', checkHashTrade);
+
+    // Swipe horizontal discreto entre páxinas (evita o bordo esquerdo de iOS e .chips)
+    var swX = 0, swY = 0, swT = 0, swOk = false;
+    viewEl.addEventListener('touchstart', function (ev) {
+      swOk = false;
+      if (ui.tab !== 'album' || !ui.catId || ui.searchOpen) return;
+      if (sheetRoot && sheetRoot.innerHTML.trim()) return;
+      if (!ev.touches || ev.touches.length !== 1) return;
+      if (ev.target && ev.target.closest && ev.target.closest('.chips')) return;
+      var t = ev.touches[0];
+      if (t.clientX < 24) return;
+      swX = t.clientX;
+      swY = t.clientY;
+      swT = Date.now();
+      swOk = true;
+    }, { passive: true });
+
+    viewEl.addEventListener('touchend', function (ev) {
+      if (!swOk || !ev.changedTouches || !ev.changedTouches.length) return;
+      swOk = false;
+      var t = ev.changedTouches[0];
+      var dx = t.clientX - swX;
+      var dy = t.clientY - swY;
+      if (Date.now() - swT > 600) return;
+      if (Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy) * 1.6) {
+        stepPage(dx < 0 ? 1 : -1);
+      }
+    }, { passive: true });
 
     // service worker (só con http/https)
     if ('serviceWorker' in navigator && (location.protocol === 'http:' || location.protocol === 'https:')) {

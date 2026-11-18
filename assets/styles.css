@@ -411,7 +411,16 @@ h1, h2, h3 { letter-spacing: -.015em; }
 
 /* ---------- Subcabeceira ---------- */
 
-.subhead { display: flex; align-items: center; gap: 4px; padding: 6px 12px 8px; }
+.cat-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 15;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line-soft);
+  margin-bottom: 10px;
+}
+
+.subhead { display: flex; align-items: center; gap: 6px; padding: 6px 12px 8px; }
 
 .subhead h2 {
   margin: 0;
@@ -448,13 +457,29 @@ h1, h2, h3 { letter-spacing: -.015em; }
 .back-btn:active { background: color-mix(in srgb, var(--ink) 8%, transparent); }
 .back-btn svg { width: 20px; height: 20px; }
 
+.nav-pair { display: flex; align-items: center; gap: 2px; flex: 0 0 auto; }
+
+.nav-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink);
+}
+
+.nav-btn svg { width: 18px; height: 18px; }
+.nav-btn:active { background: color-mix(in srgb, var(--ink) 8%, transparent); }
+.nav-btn:disabled { opacity: .28; pointer-events: none; }
+
 /* ---------- Chips de páxina ---------- */
 
 .chips {
   display: flex;
   gap: 7px;
   overflow-x: auto;
-  padding: 2px 12px 12px;
+  padding: 2px 12px 10px;
   scrollbar-width: none;
 }
 
@@ -484,6 +509,11 @@ h1, h2, h3 { letter-spacing: -.015em; }
 /* ---------- Filas ---------- */
 
 .rows { display: flex; flex-direction: column; gap: 5px; padding: 0 12px; }
+.rows.slide-next { animation: slideNext .16s ease-out; }
+.rows.slide-prev { animation: slidePrev .16s ease-out; }
+
+@keyframes slideNext { from { opacity: .45; transform: translateX(18px); } to { opacity: 1; transform: none; } }
+@keyframes slidePrev { from { opacity: .45; transform: translateX(-18px); } to { opacity: 1; transform: none; } }
 
 .row {
   display: flex;
